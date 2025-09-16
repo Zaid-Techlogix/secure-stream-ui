@@ -1,13 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { RegisterForm } from '@/components/auth/RegisterForm';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Shield, Zap } from 'lucide-react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from '../hooks/use-toast';
 
 type AuthMode = 'welcome' | 'login' | 'register';
 
 export const WelcomePage: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('welcome');
+  const location = useLocation()
+  const [query] = useSearchParams(location.search);
+  const err = query.get('message')
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const localMode = localStorage.getItem('mode');
+    if (localMode) {
+      setMode(localMode as AuthMode)
+    }
+
+    if (err) {
+      toast({
+        title: "Login failed",
+        description: err,
+        variant: "destructive"
+      });
+
+      navigate(location.pathname, { replace: true })
+    }
+
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('mode', mode)
+  }, [mode])
 
   if (mode === 'login') {
     return (

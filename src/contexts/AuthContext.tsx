@@ -5,6 +5,9 @@ interface User {
   id: string;
   username: string;
   email: string;
+  profileUrl?: String;
+  provider?: String;
+  accounts?: [];
 }
 
 interface AuthContextType {
@@ -12,73 +15,94 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  updateUser: (data: Partial<{ username: string; profileUrl: string }>) => Promise<void>;
+  logout: () => Promise<void>;
+  deleteUserAccount: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const API_BASE_URL = 'http://localhost:5000';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in on app start
+  // Fetch user on app boot (validates cookie session)
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // Verify token with server
-      fetchUserProfile(token);
-    } else {
-      setIsLoading(false);
-    }
+    fetchUserProfile();
   }, []);
 
-  const fetchUserProfile = async (token: string) => {
+  const fetchUserProfile = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch('/api/user/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       });
-
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        const data = await response.json();
+        setUser(data.user || data); // handle both {user: {...}} or plain user object
       } else {
-        localStorage.removeItem('authToken');
+        setUser(null);
       }
-    } catch (error) {
-      console.error('Profile fetch error:', error);
-      localStorage.removeItem('authToken');
+    } catch {
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const deleteUserAccount = async (password: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const response = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete user account');
+      }
+
+      // On success, clear user state and show toast
+      setUser(null);
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account has been successfully deleted.',
+      });
+
+      // Optionally redirect user or do other cleanup here
+
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Delete Failed',
+        description: error instanceof Error ? error.message : 'Something went wrong',
+      });
+      throw error;
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/user/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Login failed');
       }
-
       const data = await response.json();
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user);
-      
+      setUser(data.user || data);
       toast({
         title: "Welcome back!",
-        description: `Hello ${data.user.username}, you're now logged in.`,
+        description: `Hello ${data.user ? data.user.username : data.username}, you're now logged in.`,
       });
     } catch (error) {
       toast({
@@ -87,31 +111,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         description: error instanceof Error ? error.message : "Something went wrong",
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const register = async (username: string, email: string, password: string) => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await fetch('/api/user/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Registration failed');
       }
-
       const data = await response.json();
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user);
-      
+      setUser(data.user || data);
       toast({
         title: "Account Created!",
-        description: `Welcome ${data.user.username}! Your account has been created successfully.`,
+        description: `Welcome ${data.user ? data.user.username : username}! Your account has been created successfully.`,
       });
     } catch (error) {
       toast({
@@ -120,26 +142,59 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         description: error instanceof Error ? error.message : "Something went wrong",
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    setUser(null);
-    toast({
-      title: "Signed Out",
-      description: "You have been successfully signed out.",
-    });
+  const updateUser = async (data: Partial<{ username: string; profileUrl: string }>) => {
+    try {
+      if (!user) throw new Error('No user logged in');
+
+      const response = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user');
+      }
+
+      const updatedUser = await response.json();
+
+      setUser((prev) => ({
+        ...prev!,
+        ...updatedUser.user!,
+      }));
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Profile Update Failed",
+        description: error.message
+      })
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch('/api/user/logout', {
+        method: 'GET',
+        credentials: 'include',
+      });
+    } finally {
+      setUser(null);
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading,
-      login,
-      register,
-      logout,
-    }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, updateUser, logout, deleteUserAccount }}>
       {children}
     </AuthContext.Provider>
   );

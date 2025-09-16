@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { WelcomePage } from './WelcomePage';
 import { ProfilePage } from '@/components/auth/ProfilePage';
