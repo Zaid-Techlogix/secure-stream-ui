@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        'inter': ['Inter', 'sans-serif'],
+        sans: ['Raleway', 'sans-serif']
       },
       colors: {
         border: "hsl(var(--border))",
@@ -83,7 +83,7 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
-        },
+        }
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',

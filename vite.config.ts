@@ -5,9 +5,16 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base:'/secure-stream-ui/',
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api': {
+        target: "http://localhost:5000",
+        changeOrigin: true
+      }
+    }
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

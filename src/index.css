@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +12,7 @@
     --background-secondary: 240 8% 6%;
     --surface: 240 7% 8%;
     --surface-hover: 240 6% 10%;
-    
+
     /* Text colors */
     --foreground: 0 0% 98%;
     --foreground-muted: 240 5% 64.9%;
@@ -24,7 +23,7 @@
     --primary-dark: 250 100% 50%;
     --primary-light: 250 100% 70%;
     --primary-foreground: 0 0% 98%;
-    
+
     --secondary: 260 100% 65%;
     --secondary-dark: 260 100% 55%;
     --secondary-foreground: 0 0% 98%;
@@ -32,16 +31,16 @@
     /* Accent colors */
     --accent: 270 100% 70%;
     --accent-foreground: 0 0% 98%;
-    
+
     /* Status colors */
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
-    
+
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 98%;
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+
+    --destructive: 0 72% 35%; /* dark red background */
+    --destructive-foreground: 0 0% 98%; /* white text */
 
     /* UI Elements */
     --card: 240 7% 8%;
@@ -60,17 +59,26 @@
     --ring: 250 100% 60%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-    --gradient-surface: linear-gradient(135deg, hsl(var(--surface)), hsl(var(--surface-hover)));
-    --gradient-glass: linear-gradient(135deg, 
-      hsla(var(--surface), 0.8), 
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(var(--primary)),
+      hsl(var(--secondary))
+    );
+    --gradient-surface: linear-gradient(
+      135deg,
+      hsl(var(--surface)),
+      hsl(var(--surface-hover))
+    );
+    --gradient-glass: linear-gradient(
+      135deg,
+      hsla(var(--surface), 0.8),
       hsla(var(--surface-hover), 0.6)
     );
 
     /* Glass effect */
     --glass-bg: hsla(var(--surface), 0.8);
     --glass-border: hsla(var(--border), 0.3);
-    
+
     /* Shadows */
     --shadow-sm: 0 2px 4px hsla(0, 0%, 0%, 0.1);
     --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.15);
@@ -144,9 +152,23 @@
     @apply border-border;
   }
 
+  input[type=password]:not(:placeholder-shown){
+    letter-spacing: 2px;
+    font-size: 1.5rem;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    @apply bg-background text-foreground shadow-[0_0_0px_1000px_var(--background)_inset] !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   body {
-    @apply bg-background text-foreground font-inter;
-    background: var(--gradient-surface);
+    @apply bg-background text-foreground font-semibold font-sans;
+    /* background: var(--gradient-surface); */
     background-attachment: fixed;
   }
 }
@@ -186,11 +208,11 @@
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: hsl(var(--muted));
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: hsl(var(--primary));
     border-radius: 3px;
