@@ -127,7 +127,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Registration failed');
+        const err = Object.entries(error.errors ?? {})?.[0]?.[1];
+        throw new Error((err || error.message || 'Registration failed') as string);
       }
       const data = await response.json();
       setUser(data.user || data);

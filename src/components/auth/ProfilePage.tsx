@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { AvatarImage } from '@radix-ui/react-avatar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FaGithub, FaGoogle, FaTwitter, FaFacebook } from 'react-icons/fa';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from '../../hooks/use-toast';
 
 
 export const ProfilePage: React.FC = () => {
@@ -33,6 +35,24 @@ export const ProfilePage: React.FC = () => {
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  // router
+  const location = useLocation()
+  const [query] = useSearchParams(location.search);
+  const message = query.get('message')
+  const err = query.get("err")
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (err || message) {
+      toast({
+        description: err || message,
+        variant: err ? "destructive" : "default"
+      });
+
+      navigate(location.pathname, { replace: true })
+    }
+  }, [message, err])
 
   if (!user) {
     return null;
@@ -69,7 +89,7 @@ export const ProfilePage: React.FC = () => {
     try {
       let profileUrl = user.profileUrl;
       if (selectedImageFile) {
-        profileUrl = await getProfileUrl();
+        profileUrl = await getProfileUrl() as string;
       }
       await updateUser({ username: editedUsername, profileUrl: profileUrl as string });
       setIsEditing(false);
@@ -107,48 +127,58 @@ export const ProfilePage: React.FC = () => {
 
         {/* Profile Card */}
         <Card className="border-border/20">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-between gap-5 flex-wrap ">
-              <div className="flex justify-center mb-4 md:w-1/2">
-                <Avatar className={`h-40 w-auto text-2xl rounded-sm`}>
-                  {previewImageUrl || user.profileUrl ? (
-                    <AvatarImage src={previewImageUrl ?? user.profileUrl as string} className='object-cover' />
-                  ) : (
-                    <AvatarFallback className="bg-gradient-primary text-primary-foreground">{initials}</AvatarFallback>
-                  )}
-                </Avatar>
-              </div>
+          <CardHeader className="flex flex-col items-center text-center space-y-4 pb-6">
+            {/* Avatar */}
+            <Avatar className="h-32 w-32 rounded-full border-2 border-secondary">
+              {previewImageUrl || user.profileUrl ? (
+                <AvatarImage
+                  src={previewImageUrl ?? (user.profileUrl as string)}
+                  alt={user.username}
+                  className="object-cover"
+                />
+              ) : (
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground text-2xl">
+                  {initials}
+                </AvatarFallback>
+              )}
+            </Avatar>
 
-              <div className='flex-1'>
-                {isEditing ? (
-                  <>
-                    <Input
-                      value={editedUsername}
-                      onChange={(e) => setEditedUsername(e.target.value)}
-                      className="text-3xl text-foreground text-center font-semibold mb-4"
-                      autoFocus
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setSelectedImageFile(file);
-                          setPreviewImageUrl(URL.createObjectURL(file));
-                        }
-                      }}
-                      className="mx-auto"
-                    />
-                  </>
-                ) : (
-                  <CardTitle className="text-3xl text-foreground">{user.username}</CardTitle>
-                )}
+            {/* Info Section */}
+            <div className="w-full space-y-2">
+              {isEditing ? (
+                <>
+                  <Input
+                    value={editedUsername}
+                    onChange={(e) => setEditedUsername(e.target.value)}
+                    className="text-2xl text-foreground font-semibold text-center"
+                    autoFocus
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setSelectedImageFile(file);
+                        setPreviewImageUrl(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="block mx-auto text-sm text-foreground-muted"
+                  />
+                </>
+              ) : (
+                <CardTitle className="text-2xl font-semibold text-foreground">
+                  {user.username}
+                </CardTitle>
+              )}
 
-                <CardDescription className="text-foreground-muted">{user.email}</CardDescription>
-              </div>
+              <CardDescription className="text-foreground-muted">
+                {user.email}
+              </CardDescription>
             </div>
           </CardHeader>
+
+
 
           <CardContent className="space-y-6">
             {/* Profile Information */}
@@ -188,13 +218,14 @@ export const ProfilePage: React.FC = () => {
 
             {/* Accounts */}
 
-            {user.provider == 'auth' ?? (
+            {user.provider != 'auth' ? (
               <div className="space-y-4 pt-4 border-t border-border/20">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Users /> Connected Accounts
+                <h3 className="text-lg font-semibold text-foreground flex justify-center flex-col gap-2">
+                  <div className='flex items-center gap-2'><Users />  <span>Connected Accounts</span></div>
+                  <div className='text-green-500'>{user?.accounts?.filter(account => account)?.length ?? 0} connected</div>
                 </h3>
                 <div className="flex items-center space-x-0">
-                  {user.accounts.map((account, index) => {
+                  {user?.accounts?.filter(account => account).map((account: string, index: number) => {
                     const iconsMap: Record<string, React.ElementType> = {
                       github: FaGithub,
                       google: FaGoogle,
@@ -218,7 +249,7 @@ export const ProfilePage: React.FC = () => {
                 </div>
 
               </div>
-            )}
+            ) : ''}
 
             {/* Actions */}
             <div className="space-y-4 pt-4 border-t border-border/20">

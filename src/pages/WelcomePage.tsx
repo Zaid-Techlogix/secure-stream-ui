@@ -12,20 +12,21 @@ export const WelcomePage: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('welcome');
   const location = useLocation()
   const [query] = useSearchParams(location.search);
-  const err = query.get('message')
+  const message = query.get('message')
+  const err = query.get("err")
   const navigate = useNavigate();
 
   useEffect(() => {
-    const localMode = localStorage.getItem('mode');
+    const localMode = sessionStorage.getItem('mode');
     if (localMode) {
       setMode(localMode as AuthMode)
     }
 
-    if (err) {
+    if (err || message) {
       toast({
-        title: "Login failed",
-        description: err,
-        variant: "destructive"
+        title: 'Notice',
+        description: err || message,
+        variant: err ? "destructive" : "default"
       });
 
       navigate(location.pathname, { replace: true })
@@ -34,7 +35,7 @@ export const WelcomePage: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('mode', mode)
+    sessionStorage.setItem('mode', mode)
   }, [mode])
 
   if (mode === 'login') {

@@ -152,6 +152,11 @@
     @apply border-border;
   }
 
+  input[type=password]:not(:placeholder-shown){
+    letter-spacing: 2px;
+    font-size: 1.5rem;
+  }
+
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
@@ -162,7 +167,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-semibold font-sans;
     /* background: var(--gradient-surface); */
     background-attachment: fixed;
   }
