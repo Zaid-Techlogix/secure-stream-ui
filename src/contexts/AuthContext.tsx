@@ -20,6 +20,7 @@ interface AuthContextType {
   deleteUserAccount: (password: string) => Promise<void>;
 }
 
+const API_URL=import.meta.env.VITE_API_URL
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -34,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchUserProfile = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/user/me', {
+      const response = await fetch(`${API_URL}/user/me`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteUserAccount = async (password: string) => {
     try {
-      const response = await fetch('/api/user/delete', {
+      const response = await fetch(`${API_URL}/user/delete`, {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/user/login', {
+      const response = await fetch(`${API_URL}/user/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -119,7 +120,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (username: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/user/register', {
+      const response = await fetch(`${API_URL}/user/register`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -152,7 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       if (!user) throw new Error('No user logged in');
 
-      const response = await fetch('/api/user', {
+      const response = await fetch(`${API_URL}/user`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -181,7 +182,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     try {
-      await fetch('/api/user/logout', {
+      await fetch(`${API_URL}/user/logout`, {
         method: 'GET',
         credentials: 'include',
       });
