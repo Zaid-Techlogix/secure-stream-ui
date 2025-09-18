@@ -11,8 +11,6 @@ interface RegisterFormProps {
   onSwitchToLogin: () => void;
 }
 
-const apiUrl = import.meta.env.VITE_API_URL
-const baseUrl = import.meta.env.VITE_APP_URL
 
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
@@ -21,6 +19,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
+
+  const apiUrl = import.meta.env.VITE_API_URL
+  const baseUrl = `${location.origin}${location.pathname}`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

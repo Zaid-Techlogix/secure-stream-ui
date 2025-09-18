@@ -19,8 +19,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const { login } = useAuth();
   
   const apiUrl = import.meta.env.VITE_API_URL
-  const baseUrl = location.origin
-  
+  const baseUrl = `${location.origin}${location.pathname}`
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
