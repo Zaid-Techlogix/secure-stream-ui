@@ -20,8 +20,7 @@ interface AuthContextType {
   deleteUserAccount: (password: string) => Promise<void>;
 }
 
-const API_URL =
-  import.meta.env.PROD ? `${window.location.origin}/api` : "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
